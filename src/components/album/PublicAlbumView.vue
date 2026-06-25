@@ -197,7 +197,7 @@ onMounted(() => {
                 </div>
 
                 <el-image-viewer v-if="previewVisible" :url-list="previewUrls" :initial-index="previewIndex"
-                    @close="closePreview" />
+                    @close="closePreview" teleported />
             </div>
 
             <loading-overlay v-if="loading && !verified" :loading="loading" />

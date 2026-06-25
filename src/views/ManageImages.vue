@@ -286,7 +286,7 @@
         </BaseDialog>
 
         <!-- Image Preview -->
-        <el-image-viewer v-if="previewVisible" :url-list="[previewUrl]" @close="closePreview" hide-on-click-modal />
+        <el-image-viewer v-if="previewVisible" :url-list="[previewUrl]" @close="closePreview" hide-on-click-modal teleported />
     </div>
 </template>
 

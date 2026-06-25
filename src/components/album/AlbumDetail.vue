@@ -371,6 +371,6 @@ onMounted(() => {
 
         <!-- Image Viewer -->
         <el-image-viewer v-if="previewVisible" :url-list="previewList" :initial-index="previewIndex"
-            @close="previewVisible = false" />
+            @close="previewVisible = false" teleported />
     </div>
 </template>
