@@ -134,7 +134,8 @@ export async function compressImages(
 }
 
 /**
- * Generate a thumbnail from a File/Blob at 300px wide, WebP format
+ * Generate a thumbnail from a File/Blob at 300px wide.
+ * Tries WebP first, falls back to JPEG.
  */
 export async function generateThumbnail(file: File | Blob): Promise<Blob | null> {
     try {
@@ -156,15 +157,36 @@ export async function generateThumbnail(file: File | Blob): Promise<Blob | null>
         canvas.width = width
         canvas.height = height
         const ctx = canvas.getContext('2d')
-        if (!ctx) return null
+        if (!ctx) {
+            console.warn('[Thumbnail] No 2d context available')
+            return null
+        }
 
         ctx.drawImage(img, 0, 0, width, height)
 
-        return new Promise((resolve) => {
-            canvas.toBlob((blob) => resolve(blob), 'image/webp', 0.7)
+        // Try WebP first
+        const webpBlob = await new Promise<Blob | null>((resolve) => {
+            canvas.toBlob((b) => resolve(b), 'image/webp', 0.7)
         })
+        if (webpBlob && webpBlob.size > 0) {
+            console.log(`[Thumbnail] Generated WebP: ${webpBlob.size} bytes`)
+            return webpBlob
+        }
+
+        // Fallback to JPEG
+        console.warn('[Thumbnail] WebP failed, trying JPEG fallback')
+        const jpegBlob = await new Promise<Blob | null>((resolve) => {
+            canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.6)
+        })
+        if (jpegBlob && jpegBlob.size > 0) {
+            console.log(`[Thumbnail] Generated JPEG fallback: ${jpegBlob.size} bytes`)
+            return jpegBlob
+        }
+
+        console.warn('[Thumbnail] Both WebP and JPEG failed')
+        return null
     } catch (e) {
-        console.error('Thumbnail generation failed:', e)
+        console.error('[Thumbnail] Generation failed:', e)
         return null
     }
 }

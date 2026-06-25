@@ -48,7 +48,7 @@ const displayGetName = (key: string) => {
 </script>
 
 <template>
-    <div class="group relative bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer border aspect-[4/3] md:aspect-[3/4]"
+    <div class="group relative bg-gray-100 dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg transition-all cursor-pointer border aspect-[4/3] md:aspect-[3/4]"
         :class="selected ? 'border-indigo-500 ring-2 ring-indigo-500/50' : 'border-gray-200 dark:border-gray-700'"
         @click="$emit('preview')">
 
@@ -62,7 +62,7 @@ const displayGetName = (key: string) => {
         </div>
 
         <!-- Full Background Image -->
-        <div class="absolute inset-0">
+        <div class="absolute inset-0 overflow-hidden rounded-2xl">
             <el-image :src="item.thumbnailUrl || item.url" fit="cover"
                 class="w-full h-full transition-transform duration-700 group-hover:scale-105" 
                 :class="{ 'blur-xl': isNsfw && !showNsfw }"
