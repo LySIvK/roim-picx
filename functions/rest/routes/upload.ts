@@ -141,17 +141,17 @@ uploadRoutes.post('/upload', uploadRateLimit, auth, async (c) => {
                 }
             }
 
-            // 同步图片信息到 D1 数据库
+            // 同步图片信息到 D1 数据库（同步写入，不再用 waitUntil）
             if (user) {
                 console.log(`[Upload] Syncing to DB - key: ${object.key}, user_login: ${user.login}`)
                 const tagsJson = tags.length > 0 ? JSON.stringify(tags) : null
-                c.executionCtx.waitUntil(
-                    c.env.DB.prepare(
+                try {
+                    await c.env.DB.prepare(
                         `INSERT INTO images (key, user_id, user_login, original_name, size, mime_type, folder, expires_at, storage_type, tags, nsfw, nsfw_score, thumbnail_key)
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
                     ).bind(
                         object.key,
-                        null,  // user_id 设为 null，避免外键约束失败（JWT 中的 id 是 GitHub ID）
+                        null,
                         user.login,
                         originalName || null,
                         finalSize,
@@ -163,27 +163,31 @@ uploadRoutes.post('/upload', uploadRateLimit, auth, async (c) => {
                         nsfw,
                         nsfwScore,
                         thumbnailKey
-                    ).run().then((result) => {
-                        console.log(`[Upload] Image inserted to DB successfully - key: ${object.key}, meta: ${JSON.stringify(result.meta)}`)
-                        // 更新用户统计
-                        return c.env.DB.prepare(
-                            `UPDATE users SET 
-                                storage_used = storage_used + ?, 
-                                upload_count = upload_count + 1 
-                             WHERE login = ?`
-                        ).bind(finalSize, user.login).run()
-                    }).then((result) => {
-                        console.log(`[Upload] User stats updated - login: ${user.login}, meta: ${JSON.stringify(result.meta)}`)
-                        // 记录上传审计日志
-                        return c.env.DB.prepare(
-                            `INSERT INTO audit_logs (user_id, user_login, action, target_key, details) 
+                    ).run()
+                    console.log(`[Upload] Image inserted to DB successfully - key: ${object.key}`)
+
+                    // 更新用户统计 (async, non-critical)
+                    c.executionCtx.waitUntil(
+                        c.env.DB.prepare(
+                            `UPDATE users SET storage_used = storage_used + ?, upload_count = upload_count + 1 WHERE login = ?`
+                        ).bind(finalSize, user.login).run().catch(e => console.error('[Upload] User stats update failed:', e))
+                    )
+
+                    // 审计日志 (async, non-critical)
+                    c.executionCtx.waitUntil(
+                        c.env.DB.prepare(
+                            `INSERT INTO audit_logs (user_id, user_login, action, target_key, details)
                              VALUES (?, ?, 'upload', ?, ?)`
                         ).bind(user.id, user.login, object.key, JSON.stringify({ size: finalSize, originalName: originalName, storageType })).run()
-                    }).catch(e => {
-                        console.error(`[Upload] Failed to sync image to DB - key: ${object.key}, error:`, e)
-                    })
-
-                )
+                            .catch(e => console.error('[Upload] Audit log failed:', e))
+                    )
+                } catch (dbErr) {
+                    console.error(`[Upload] DB insert failed - key: ${object.key}, error:`, dbErr)
+                    errs.push(`${file.name}: Database write failed`)
+                    // 回滚：删除已上传的 R2 文件
+                    try { await storage.delete(object.key) } catch (_) {}
+                    continue
+                }
 
                 // Sync to Album if specified
                 if (albumId) {
