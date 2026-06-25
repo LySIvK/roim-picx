@@ -142,11 +142,11 @@ uploadRoutes.post('/upload', uploadRateLimit, auth, async (c) => {
             }
 
             // 同步图片信息到 D1 数据库（同步写入，不再用 waitUntil）
+            let dbOk = false
+            let dbError = ''
             if (user) {
                 console.log(`[Upload] Syncing to DB - key: ${object.key}, user_login: ${user.login}`)
                 const tagsJson = tags.length > 0 ? JSON.stringify(tags) : null
-                let dbOk = false
-                let dbError = ''
                 try {
                     const result = await c.env.DB.prepare(
                         `INSERT INTO images (key, user_id, user_login, original_name, size, mime_type, folder, expires_at, storage_type, tags, nsfw, nsfw_score, thumbnail_key)
