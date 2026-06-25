@@ -60,6 +60,11 @@ export interface ImgReq {
 	limit: Number
 	keyword?: string
 }
+export interface MoveReq {
+	key: string
+	targetFolder: string
+}
+
 export interface Folder {
 	name: string
 	delimiter?: string  // current path context

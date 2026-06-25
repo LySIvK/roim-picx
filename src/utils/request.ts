@@ -85,6 +85,7 @@ export interface TokenLoginResult {
 export const checkToken = (data: AuthToken): Promise<boolean | TokenLoginResult> => request.post('/rest/checkToken', data)
 export const requestDeleteImage = (data: ImgDel): Promise<string> => request.delete('/rest', { data })
 export const requestRenameImage = (data: { oldKey: string, newKey: string }): Promise<string> => request.post('/rest/rename', data)
+export const requestMoveImage = (data: { key: string, targetFolder: string }): Promise<{ oldKey: string, newKey: string }> => request.post('/rest/move', data)
 export const requestUpdateImageTags = (data: { key: string, tags: string[] }): Promise<{ key: string, tags: string[] }> => request.post('/rest/updateTags', data)
 export const requestUpdateImageDescription = (data: { key: string, description: string }): Promise<{ key: string, description: string }> => request.post('/rest/updateDescription', data)
 export const requestDelInfo = (token: string): Promise<ImgItem> => request.get(`/rest/delInfo/${token}`)

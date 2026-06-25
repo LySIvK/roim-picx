@@ -89,6 +89,14 @@
         </button>
       </el-tooltip>
 
+      <el-tooltip :content="$t('manage.moveToFolder')" placement="top" :show-after="500">
+        <button
+          class="w-8 h-8 rounded-full text-gray-400 dark:text-gray-500 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/30 transition-colors flex items-center justify-center"
+          @click.stop="emit('moveTo')">
+          <font-awesome-icon :icon="faArrowRight" class="text-sm" />
+        </button>
+      </el-tooltip>
+
       <el-tooltip :content="$t('manage.share')" placement="top" :show-after="500">
         <button
           class="w-8 h-8 rounded-full text-gray-400 dark:text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors flex items-center justify-center"
@@ -121,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { faTrashAlt, faLink, faImage, faEdit, faEye, faUser, faShareAlt, faFolderPlus, faTag, faEyeSlash, faCheck } from '@fortawesome/free-solid-svg-icons'
+import { faTrashAlt, faLink, faImage, faEdit, faEye, faUser, faShareAlt, faFolderPlus, faTag, faEyeSlash, faCheck, faArrowRight } from '@fortawesome/free-solid-svg-icons'
 import copy from 'copy-to-clipboard'
 import formatBytes from '../utils/format-bytes'
 import { ElTooltip, ElPopconfirm, ElImage, ElMessage } from 'element-plus'
@@ -141,7 +149,7 @@ const props = defineProps<{
   isSelectMode?: boolean
 }>()
 
-const emit = defineEmits(['delete', 'detail', 'rename', 'preview', 'share', 'addToAlbum', 'editTags', 'toggleSelect'])
+const emit = defineEmits(['delete', 'detail', 'rename', 'preview', 'share', 'addToAlbum', 'editTags', 'toggleSelect', 'moveTo'])
 const imageError = ref(false)
 
 const isNsfw = computed(() => props.nsfw)

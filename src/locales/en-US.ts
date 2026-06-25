@@ -217,6 +217,11 @@ export default {
         description: 'Description',
         descPlaceholder: 'Enter a description for this image...',
         noDescription: 'No description',
+        moveToFolder: 'Move to Folder',
+        selectTargetFolder: 'Select target folder',
+        moveTargetHint: 'The image will be moved to the selected folder',
+        moveSuccess: 'Moved successfully',
+        moveFailed: 'Move failed',
     },
     share: {
         title: 'Share Image',

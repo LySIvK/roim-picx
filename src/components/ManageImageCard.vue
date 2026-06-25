@@ -4,7 +4,7 @@ import {
     ElDropdown, ElDropdownMenu, ElDropdownItem, ElImage
 } from 'element-plus'
 import {
-    faEllipsisVertical, faPen, faTrash, faShareAlt, faLink, faFolderPlus, faEye, faTag, faEyeSlash, faCheck
+    faEllipsisVertical, faPen, faTrash, faShareAlt, faLink, faFolderPlus, faEye, faTag, faEyeSlash, faCheck, faArrowRight
 } from '@fortawesome/free-solid-svg-icons'
 import { computed, ref } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -35,6 +35,7 @@ const emit = defineEmits<{
     (e: 'addToAlbum'): void
     (e: 'editTags'): void
     (e: 'toggleSelect'): void
+    (e: 'moveTo'): void
 }>()
 
 const { t } = useI18n()
@@ -111,6 +112,9 @@ const displayGetName = (key: string) => {
                         </el-dropdown-item>
                         <el-dropdown-item @click="$emit('addToAlbum')">
                             <font-awesome-icon :icon="faFolderPlus" class="mr-2" />{{ $t('album.uploadTo') }}
+                        </el-dropdown-item>
+                        <el-dropdown-item @click="$emit('moveTo')">
+                            <font-awesome-icon :icon="faArrowRight" class="mr-2" />{{ $t('manage.moveToFolder') }}
                         </el-dropdown-item>
                         <el-dropdown-item @click="$emit('rename')">
                             <font-awesome-icon :icon="faPen" class="mr-2" />{{ $t('manage.rename') }}

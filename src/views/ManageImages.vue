@@ -141,14 +141,14 @@
                 class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 <transition-group name="el-fade-in-linear">
                     <div class="relative" v-for="item in uploadedImages" :key="item.url">
-                        <ManageImageCard :item="item" 
+                        <ManageImageCard :item="item"
                             :selected="selectedKeys.has(item.key)"
                             :is-select-mode="isSelectMode"
                             @toggleSelect="toggleSelect(item.key)"
                             @delete="deleteImage(item.key)" @rename="renameImage(item)"
                             @detail="showDetailsDialog(item)" @preview="showPreview(item.url)"
                             @share="showShareDialog(item)" @addToAlbum="showAddToAlbumDialog(item)"
-                            @editTags="showEditTagsDialog(item)" class="w-full h-full" />
+                            @editTags="showEditTagsDialog(item)" @moveTo="showMoveDialog(item)" class="w-full h-full" />
                     </div>
                 </transition-group>
             </div>
@@ -165,7 +165,8 @@
                         @delete="deleteImage(item.key)"
                         @rename="renameImage(item)" @detail="showDetailsDialog(item)"
                         @preview="showPreview(item.url)" @share="showShareDialog(item)"
-                        @addToAlbum="showAddToAlbumDialog(item)" @editTags="showEditTagsDialog(item)" />
+                        @addToAlbum="showAddToAlbumDialog(item)" @editTags="showEditTagsDialog(item)"
+                        @moveTo="showMoveDialog(item)" />
                 </transition-group>
             </div>
 
@@ -255,13 +256,31 @@
             </div>
         </BaseDialog>
 
+        <!-- Move to Folder Dialog -->
+        <BaseDialog v-model="moveDialogVisible" :title="$t('manage.moveToFolder')" width="400px"
+            @confirm="handleMoveConfirm" :loading="loading">
+            <div class="py-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ $t('manage.selectTargetFolder') }}</label>
+                <div class="flex flex-col gap-2">
+                    <label v-for="folder in moveFolderOptions" :key="folder.value"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-all"
+                        :class="moveTargetFolder === folder.value ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'">
+                        <input type="radio" v-model="moveTargetFolder" :value="folder.value" class="sr-only" />
+                        <font-awesome-icon :icon="faFolder" class="text-amber-500" />
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ folder.label }}</span>
+                    </label>
+                </div>
+                <p class="mt-3 text-xs text-gray-400">{{ $t('manage.moveTargetHint') }}</p>
+            </div>
+        </BaseDialog>
+
         <!-- Image Preview -->
         <el-image-viewer v-if="previewVisible" :url-list="[previewUrl]" @close="closePreview" hide-on-click-modal />
     </div>
 </template>
 
 <script setup lang="ts">
-import { requestListImages, requestDeleteImage, createFolder, deleteFolder, requestRenameImage } from '../utils/request'
+import { requestListImages, requestDeleteImage, createFolder, deleteFolder, requestRenameImage, requestMoveImage } from '../utils/request'
 import formatBytes from '../utils/format-bytes'
 import type { ImgItem, ImgReq, Folder } from '../utils/types'
 import { ElImageViewer } from 'element-plus'
@@ -350,6 +369,11 @@ const oldFileName = ref('')
 // Add Folder state
 const folderDialogVisible = ref(false)
 const folderNameValue = ref('')
+
+// Move to Folder state
+const moveDialogVisible = ref(false)
+const moveTargetFolder = ref('')
+const currentMoveItem = ref<ImgItem | null>(null)
 
 // Edit Tags state
 const editTagsDialogVisible = ref(false)
@@ -541,6 +565,68 @@ const handleDeleteFolder = (folderPath: string) => {
         // user cancelled
     })
 }
+
+// Move to folder
+const moveFolderOptions = computed(() => {
+    const options: { label: string, value: string }[] = [
+        { label: t('manage.rootFolder'), value: '' }
+    ]
+    // Add all existing prefixes as options
+    for (const p of prefixes.value) {
+        if (p !== '/') {
+            const name = String(p).replace(/\/$/, '')
+            options.push({ label: name || p, value: String(p) })
+        }
+    }
+    return options
+})
+
+const showMoveDialog = (item: ImgItem) => {
+    currentMoveItem.value = item
+    moveTargetFolder.value = ''
+    moveDialogVisible.value = true
+}
+
+const handleMoveConfirm = async () => {
+    if (!currentMoveItem.value) {
+        moveDialogVisible.value = false
+        return
+    }
+
+    loading.value = true
+    try {
+        const res = await requestMoveImage({
+            key: currentMoveItem.value.key,
+            targetFolder: moveTargetFolder.value
+        })
+
+        if (res.newKey === currentMoveItem.value.key) {
+            moveDialogVisible.value = false
+            loading.value = false
+            return
+        }
+
+        ElMessage.success(t('manage.moveSuccess'))
+        // Update local list - update the moved item's key
+        const oldKey = currentMoveItem.value.key
+        const index = uploadedImages.value.findIndex(img => img.key === oldKey)
+        if (index !== -1) {
+            const updatedItem = { ...uploadedImages.value[index] }
+            updatedItem.key = res.newKey
+            updatedItem.url = updatedItem.url.replace(encodeURIComponent(oldKey), encodeURIComponent(res.newKey))
+                .replace(oldKey, res.newKey)
+            uploadedImages.value[index] = updatedItem
+        }
+        moveDialogVisible.value = false
+        listImages() // Refresh to be sure
+    } catch (err) {
+        console.error(err)
+        ElMessage.error(t('manage.moveFailed'))
+    } finally {
+        loading.value = false
+    }
+}
+
 // Initial load - reset state and load first page
 const listImages = () => {
     loading.value = true

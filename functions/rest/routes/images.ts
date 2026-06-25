@@ -275,6 +275,98 @@ imageRoutes.post('/updateDescription', auth, async (c) => {
     }
 })
 
+// 移动图片到目录
+imageRoutes.post('/move', auth, async (c) => {
+    try {
+        const data = await c.req.json<{ key: string, targetFolder: string }>()
+        if (!data.key) {
+            return c.json(Fail("Missing key"))
+        }
+
+        // Normalize target folder path
+        let targetFolder = (data.targetFolder || '').trim()
+        if (targetFolder && !targetFolder.endsWith('/')) {
+            targetFolder += '/'
+        }
+        if (targetFolder.startsWith('/')) {
+            targetFolder = targetFolder.substring(1)
+        }
+
+        // Get image from DB
+        const img = await c.env.DB.prepare('SELECT * FROM images WHERE key = ?')
+            .bind(data.key).first<DbImage>()
+        if (!img) {
+            return c.json(Fail("Image not found in DB"))
+        }
+
+        // Extract filename from old key
+        const keyParts = data.key.split('/')
+        const fileName = keyParts[keyParts.length - 1]
+
+        // Build new key
+        const newKey = targetFolder ? targetFolder + fileName : fileName
+
+        // If key hasn't changed, nothing to move
+        if (newKey === data.key) {
+            return c.json(Ok({ oldKey: data.key, newKey: data.key }))
+        }
+
+        const provider = getProviderByType(c, img.storage_type || 'R2')
+
+        // Check if new key already exists
+        const existing = await provider.head(newKey)
+        if (existing) {
+            return c.json(Fail("A file with the same name already exists in the target directory"))
+        }
+
+        const oldObject = await provider.get(data.key)
+        if (!oldObject) {
+            return c.json(Fail("File not found in storage"))
+        }
+
+        // Copy to new key
+        await provider.put(newKey, oldObject.body!, {
+            contentType: oldObject.contentType!,
+            metadata: oldObject.metadata,
+        })
+
+        // Delete old file
+        await provider.delete(data.key)
+
+        // Update D1 images table
+        await c.env.DB.prepare('UPDATE images SET key = ?, folder = ? WHERE key = ?')
+            .bind(newKey, targetFolder, data.key).run()
+
+        // Update album_images references
+        c.executionCtx.waitUntil(
+            c.env.DB.prepare('UPDATE album_images SET image_key = ? WHERE image_key = ?')
+                .bind(newKey, data.key).run()
+                .catch(e => console.error('Failed to update album_images:', e))
+        )
+
+        // Log audit
+        const user = c.get('user') as User | undefined
+        if (user) {
+            c.executionCtx.waitUntil(
+                c.env.DB.prepare(
+                    `INSERT INTO audit_logs (user_id, user_login, action, target_key, details)
+                     VALUES (?, ?, 'move', ?, ?)`
+                ).bind(
+                    user.id,
+                    user.login,
+                    newKey,
+                    JSON.stringify({ oldKey: data.key, newKey: newKey, targetFolder })
+                ).run().catch(e => console.error('Failed to log move:', e))
+            )
+        }
+
+        return c.json(Ok({ oldKey: data.key, newKey: newKey }))
+    } catch (e) {
+        console.error('Move error:', e)
+        return c.json(Fail(`Move failed: ${(e as Error).message}`))
+    }
+})
+
 // 重命名文件
 imageRoutes.post('/rename', auth, async (c) => {
     try {

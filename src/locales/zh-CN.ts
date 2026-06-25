@@ -218,6 +218,11 @@ export default {
         description: '备注',
         descPlaceholder: '输入图片备注...',
         noDescription: '暂无备注',
+        moveToFolder: '移动到目录',
+        selectTargetFolder: '选择目标目录',
+        moveTargetHint: '图片将被移动到所选目录',
+        moveSuccess: '移动成功',
+        moveFailed: '移动失败',
     },
     share: {
         title: '分享图片',
