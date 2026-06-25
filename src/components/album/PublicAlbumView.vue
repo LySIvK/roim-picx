@@ -99,7 +99,7 @@ onMounted(() => {
 
             <!-- Lock Screen -->
             <div v-else-if="!verified && shareInfo" class="max-w-lg mx-auto mt-20">
-                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8">
+                <div class="bg-white/10 dark:bg-white/5 backdrop-blur-md rounded-3xl shadow-xl p-8 border border-white/10">
                     <div class="text-center mb-8">
                         <div v-if="shareInfo.coverImage"
                             class="w-20 h-20 mx-auto rounded-full overflow-hidden mb-4 shadow-md">
@@ -173,7 +173,7 @@ onMounted(() => {
                 <div v-if="viewMode === 'grid'"
                     class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                     <div v-for="(img, index) in images" :key="img.image_key"
-                        class="aspect-square relative rounded-lg overflow-hidden group cursor-pointer bg-gray-100 dark:bg-gray-800"
+                        class="aspect-square relative rounded-lg overflow-hidden group cursor-pointer bg-white/5 dark:bg-white/5 backdrop-blur-sm"
                         @click="showPreview(index)">
                         <el-image :src="img.thumbnail_url || img.image_url" fit="cover"
                             class="w-full h-full transition-transform duration-500 group-hover:scale-110"
@@ -187,7 +187,7 @@ onMounted(() => {
                 <!-- Large View -->
                 <div v-else class="space-y-6">
                     <div v-for="(img, index) in images" :key="img.image_key"
-                        class="relative rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer group"
+                        class="relative rounded-lg overflow-hidden bg-gray-100 dark:bg-white/5 cursor-pointer group"
                         @click="showPreview(index)">
                         <el-image :src="img.thumbnail_url || img.image_url" fit="contain"
                             class="w-full max-h-[80vh] transition-transform duration-300 group-hover:scale-105"
