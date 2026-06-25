@@ -81,7 +81,7 @@ import { requestUploadImages, requestListImages, requestAuthConfig, requestListA
 import { useRouter } from 'vue-router'
 import ResultList from '../components/ResultList.vue'
 import type { ConvertedImage, ImgItem, ImgReq, Album } from '../utils/types'
-import { compressionLevels, compressImage } from '../utils/compress'
+import { compressionLevels, compressImage, generateThumbnail } from '../utils/compress'
 import { applyWatermark, defaultWatermarkConfig, type WatermarkConfig } from '../utils/watermark'
 import * as tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-backend-webgl'
@@ -369,13 +369,22 @@ const appendConvertedImages = async (files: FileList | null | undefined) => {
                 }
             }
 
+            // Step 3: Generate thumbnail (300px WebP) for fast loading
+            let thumbBlob: Blob | null = null
+            try {
+                thumbBlob = await generateThumbnail(watermarkResult.file)
+            } catch (thumbErr) {
+                console.error('Thumbnail generation error:', thumbErr)
+            }
+
             convertedImages.value = [
                 ...convertedImages.value,
                 {
                     file: watermarkResult.file,
                     tmpSrc: URL.createObjectURL(watermarkResult.file),
                     nsfw,
-                    nsfwScore
+                    nsfwScore,
+                    thumbBlob
                 }
             ]
         } catch (e) {
@@ -436,6 +445,10 @@ const uploadImages = () => {
         formData.append('nsfw', item.nsfw ? 'true' : 'false')
         if (item.nsfwScore) {
             formData.append('nsfwScore', item.nsfwScore.toString())
+        }
+        // Append thumbnail if generated
+        if (item.thumbBlob) {
+            formData.append('thumbnails', item.thumbBlob, 'thumb.webp')
         }
     }
 

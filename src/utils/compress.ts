@@ -132,3 +132,39 @@ export async function compressImages(
 
     return results
 }
+
+/**
+ * Generate a thumbnail from a File/Blob at 300px wide, WebP format
+ */
+export async function generateThumbnail(file: File | Blob): Promise<Blob | null> {
+    try {
+        const img = new Image()
+        const url = URL.createObjectURL(file)
+        await new Promise<void>((resolve, reject) => {
+            img.onload = () => resolve()
+            img.onerror = () => reject(new Error('Failed to load image for thumbnail'))
+            img.src = url
+        })
+        URL.revokeObjectURL(url)
+
+        const MAX_WIDTH = 300
+        const scale = MAX_WIDTH / img.width
+        const width = MAX_WIDTH
+        const height = Math.round(img.height * scale)
+
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return null
+
+        ctx.drawImage(img, 0, 0, width, height)
+
+        return new Promise((resolve) => {
+            canvas.toBlob((blob) => resolve(blob), 'image/webp', 0.7)
+        })
+    } catch (e) {
+        console.error('Thumbnail generation failed:', e)
+        return null
+    }
+}

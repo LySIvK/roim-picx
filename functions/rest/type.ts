@@ -149,6 +149,7 @@ export interface DbImage {
     storage_type: 'R2' | 'HF'
     nsfw: number | null // 0 or 1
     nsfw_score: number | null
+    thumbnail_key: string | null
 }
 
 // D1 分享记录

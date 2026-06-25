@@ -51,8 +51,12 @@ uploadRoutes.post('/upload', uploadRateLimit, auth, async (c) => {
 
     const errs: string[] = []
     const urls = Array<ImgItem>()
-    for (let item of images) {
+    // Thumbnail files: sent as separate field, one per image in same order
+    const thumbFiles = files.getAll("thumbnails")
+    for (let i = 0; i < images.length; i++) {
+        const item = images[i]
         const file = item as File
+        const thumbFile = (thumbFiles[i] || null) as File | null
         const fileType = file.type
         // checkFileType is now async and needs DB
         if (!await checkFileType(fileType, c.env.DB)) {
@@ -121,14 +125,30 @@ uploadRoutes.post('/upload', uploadRateLimit, auth, async (c) => {
             // 存储删除token
             await c.env.XK.put(`del:${delToken}`, object.key)
 
+            // Upload thumbnail if provided
+            let thumbnailKey = ''
+            if (thumbFile && thumbFile.size > 0) {
+                try {
+                    const thumbFileName = `thumb_300_${filename}`
+                    const thumbPath = customPath + thumbFileName
+                    const thumbResult = await storage.put(thumbPath, thumbFile.stream(), {
+                        contentType: 'image/webp',
+                        metadata: {}
+                    })
+                    thumbnailKey = thumbResult.key
+                } catch (thumbErr) {
+                    console.error('Thumbnail upload failed:', thumbErr)
+                }
+            }
+
             // 同步图片信息到 D1 数据库
             if (user) {
                 console.log(`[Upload] Syncing to DB - key: ${object.key}, user_login: ${user.login}`)
                 const tagsJson = tags.length > 0 ? JSON.stringify(tags) : null
                 c.executionCtx.waitUntil(
                     c.env.DB.prepare(
-                        `INSERT INTO images (key, user_id, user_login, original_name, size, mime_type, folder, expires_at, storage_type, tags, nsfw, nsfw_score) 
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                        `INSERT INTO images (key, user_id, user_login, original_name, size, mime_type, folder, expires_at, storage_type, tags, nsfw, nsfw_score, thumbnail_key)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
                     ).bind(
                         object.key,
                         null,  // user_id 设为 null，避免外键约束失败（JWT 中的 id 是 GitHub ID）
@@ -141,7 +161,8 @@ uploadRoutes.post('/upload', uploadRateLimit, auth, async (c) => {
                         storageType,
                         tagsJson,
                         nsfw,
-                        nsfwScore
+                        nsfwScore,
+                        thumbnailKey
                     ).run().then((result) => {
                         console.log(`[Upload] Image inserted to DB successfully - key: ${object.key}, meta: ${JSON.stringify(result.meta)}`)
                         // 更新用户统计
@@ -199,7 +220,8 @@ uploadRoutes.post('/upload', uploadRateLimit, auth, async (c) => {
                 delToken: delToken,
                 storageType: storageType as 'R2' | 'HF',
                 nsfw: nsfw === 1,
-                nsfwScore: nsfwScore
+                nsfwScore: nsfwScore,
+                thumbnailUrl: thumbnailKey ? storage.getPublicUrl(thumbnailKey) : undefined
             })
         }
     }

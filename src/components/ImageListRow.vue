@@ -16,7 +16,7 @@
       class="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700">
       <el-image class="w-full h-full object-cover" :src="src" fit="cover" hide-on-click-modal lazy
         :class="{ 'blur-md': isNsfw && !showNsfw }"
-        @error="imageError = true" :preview-src-list="[src]">
+        @error="imageError = true" :preview-src-list="[fullSrc || src]">
         <template #placeholder>
           <div class="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
             <font-awesome-icon :icon="faImage" class="text-xl" />
@@ -147,6 +147,7 @@ const props = defineProps<{
   nsfw?: boolean
   selected?: boolean
   isSelectMode?: boolean
+  fullSrc?: string
 }>()
 
 const emit = defineEmits(['delete', 'detail', 'rename', 'preview', 'share', 'addToAlbum', 'editTags', 'toggleSelect', 'moveTo'])

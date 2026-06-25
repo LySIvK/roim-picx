@@ -1,6 +1,7 @@
 export type ConvertedImage = {
 	file: File
 	tmpSrc: string
+	thumbBlob?: Blob | null
 	nsfw?: boolean
 	nsfwScore?: number
 }
@@ -34,6 +35,9 @@ export interface ImgItem {
 
 	// Description
 	description?: string
+
+	// Thumbnail
+	thumbnailUrl?: string
 
 	// Folder support
 	isFolder?: boolean

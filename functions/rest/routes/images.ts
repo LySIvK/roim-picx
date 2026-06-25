@@ -132,7 +132,8 @@ imageRoutes.post('/list', listRateLimit, auth, async (c) => {
                 nsfw: img.nsfw === 1,
                 nsfwScore: img.nsfw_score,
                 tags: tags,
-                description: img.description || undefined
+                description: img.description || undefined,
+                thumbnailUrl: img.thumbnail_key ? provider.getPublicUrl(img.thumbnail_key) : undefined
             }
         })
 
