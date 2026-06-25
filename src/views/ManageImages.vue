@@ -148,7 +148,7 @@
                             @delete="deleteImage(item.key)" @rename="renameImage(item)"
                             @detail="showDetailsDialog(item)" @preview="showPreview(item.url)"
                             @share="showShareDialog(item)" @addToAlbum="showAddToAlbumDialog(item)"
-                            @editTags="showEditTagsDialog(item)" @moveTo="showMoveDialog(item)" class="w-full h-full" />
+                            @editTags="showEditTagsDialog(item)" @moveTo="showMoveDialog(item)" @editDesc="showEditDescDialog(item)" class="w-full h-full" />
                     </div>
                 </transition-group>
             </div>
@@ -275,13 +275,23 @@
             </div>
         </BaseDialog>
 
+        <!-- Edit Description Dialog -->
+        <BaseDialog v-model="editDescDialogVisible" :title="$t('manage.description')" width="420px"
+            @confirm="handleEditDescConfirm" :loading="loading">
+            <div class="py-2">
+                <textarea v-model="editDescValue" :placeholder="$t('manage.descPlaceholder')" rows="4"
+                    class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+                    autofocus></textarea>
+            </div>
+        </BaseDialog>
+
         <!-- Image Preview -->
         <el-image-viewer v-if="previewVisible" :url-list="[previewUrl]" @close="closePreview" hide-on-click-modal />
     </div>
 </template>
 
 <script setup lang="ts">
-import { requestListImages, requestDeleteImage, createFolder, deleteFolder, requestRenameImage, requestMoveImage } from '../utils/request'
+import { requestListImages, requestDeleteImage, createFolder, deleteFolder, requestRenameImage, requestMoveImage, requestUpdateImageDescription } from '../utils/request'
 import formatBytes from '../utils/format-bytes'
 import type { ImgItem, ImgReq, Folder } from '../utils/types'
 import { ElImageViewer } from 'element-plus'
@@ -375,6 +385,11 @@ const folderNameValue = ref('')
 const moveDialogVisible = ref(false)
 const moveTargetFolder = ref('')
 const currentMoveItem = ref<ImgItem | null>(null)
+
+// Edit Description state
+const editDescDialogVisible = ref(false)
+const editDescValue = ref('')
+const currentEditDescItem = ref<ImgItem | null>(null)
 
 // Edit Tags state
 const editTagsDialogVisible = ref(false)
@@ -626,6 +641,25 @@ const handleMoveConfirm = async () => {
     } finally {
         loading.value = false
     }
+}
+
+// Edit description
+const showEditDescDialog = (item: ImgItem) => {
+    currentEditDescItem.value = item
+    editDescValue.value = item.description || ''
+    editDescDialogVisible.value = true
+}
+
+const handleEditDescConfirm = async () => {
+    if (!currentEditDescItem.value) { editDescDialogVisible.value = false; return }
+    loading.value = true
+    try {
+        await requestUpdateImageDescription({ key: currentEditDescItem.value.key, description: editDescValue.value })
+        currentEditDescItem.value.description = editDescValue.value
+        ElMessage.success(t('common.saveSuccess'))
+        editDescDialogVisible.value = false
+    } catch (e) { console.error(e) }
+    finally { loading.value = false }
 }
 
 // Initial load - reset state and load first page

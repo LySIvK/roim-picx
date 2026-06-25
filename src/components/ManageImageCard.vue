@@ -37,6 +37,7 @@ const emit = defineEmits<{
     (e: 'editTags'): void
     (e: 'toggleSelect'): void
     (e: 'moveTo'): void
+    (e: 'editDesc'): void
 }>()
 
 const { t } = useI18n()
@@ -144,7 +145,7 @@ const handleCopyLink = (e: Event) => {
                 </button>
             </div>
             <!-- Row 2: Description -->
-            <div @click.stop="$emit('detail')" class="cursor-pointer group/desc">
+            <div @click.stop="$emit('editDesc')" class="cursor-pointer group/desc">
                 <p v-if="item.description" class="text-xs text-indigo-300 dark:text-indigo-200 leading-snug line-clamp-2 group-hover/desc:text-indigo-400 transition-colors">
                     💬 {{ item.description }}
                 </p>
