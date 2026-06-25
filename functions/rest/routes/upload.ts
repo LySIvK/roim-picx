@@ -8,6 +8,18 @@ import { getStorageProvider, getProviderByType } from '../storage'
 
 const uploadRoutes = new Hono<AppEnv>()
 
+// Diagnostic: test D1 write
+uploadRoutes.get('/dbtest', async (c) => {
+    try {
+        const r = await c.env.DB.prepare(
+            "INSERT INTO images (key, user_id, user_login, size, mime_type, folder, storage_type) VALUES ('diag_test', null, 'diag', 1, 'text/plain', '', 'R2')"
+        ).run()
+        return c.json({ ok: true, meta: r.meta })
+    } catch (e: any) {
+        return c.json({ ok: false, error: e.message, stack: e.stack })
+    }
+})
+
 // batch upload file (with rate limiting)
 uploadRoutes.post('/upload', uploadRateLimit, auth, async (c) => {
     const files = await c.req.formData()
