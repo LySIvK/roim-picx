@@ -96,7 +96,7 @@ const logout = async () => {
 
         <!-- Header -->
         <div
-            class="w-full h-16 bg-pink-50/80 dark:bg-pink-950/60 border-b border-pink-200/50 dark:border-pink-800/30 sticky left-0 top-0 backdrop-blur-md z-50 transition-all duration-300">
+            class="w-full h-16 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-800/50 sticky left-0 top-0 backdrop-blur-md z-50 transition-all duration-300">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
                 <div class="flex items-center gap-3 cursor-pointer" @click="router.push('/')">
                     <img src="../assets/picx-logo.png" class="w-8 h-8 object-contain drop-shadow-sm" />
@@ -109,7 +109,7 @@ const logout = async () => {
                             class="px-4 py-2 rounded-full text-sm font-medium cursor-pointer transition-all duration-200 flex items-center gap-2"
                             :class="[
                                 $route.path === item.path
-                                    ? 'bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 shadow-sm ring-1 ring-pink-200 dark:ring-pink-800'
+                                    ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-indigo-200 dark:ring-indigo-800'
                                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
                             ]" @click="handleNavClick(item)">
                             <font-awesome-icon :icon="item.icon" />
@@ -203,11 +203,11 @@ const logout = async () => {
 
         <!-- Footer -->
         <div
-            class="w-full py-6 border-t border-pink-200/50 dark:border-pink-800/30 bg-pink-50/50 dark:bg-pink-950/40 backdrop-blur-sm mt-auto z-[2] relative">
+            class="w-full py-6 border-t border-gray-200/50 dark:border-gray-800/50 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm mt-auto z-[2] relative">
             <div class="max-w-7xl mx-auto flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
                 <span class="mr-1">Powered by</span>
                 <a :href="repoLink" target="_blank"
-                    class="font-medium text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 transition-colors hover:underline">
+                    class="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors hover:underline">
                     {{ repoName }}
                 </a>
             </div>
