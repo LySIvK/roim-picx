@@ -130,6 +130,25 @@ const displayGetName = (key: string) => {
             </el-dropdown>
         </div>
 
+        <!-- Description Bubble (hover) -->
+        <div class="absolute bottom-[calc(100%-70px)] left-1/2 -translate-x-1/2 w-[85%] opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 pointer-events-none group-hover:translate-y-0 translate-y-2">
+            <div class="relative bg-pink-100/95 dark:bg-pink-900/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-lg border border-pink-200/60 dark:border-pink-700/40">
+                <!-- Cute header -->
+                <div class="flex items-center gap-1.5 mb-1">
+                    <span class="text-xs">💬</span>
+                    <span class="text-[11px] font-medium text-pink-400 dark:text-pink-300">{{ $t('manage.descBubbleLabel') }}</span>
+                </div>
+                <!-- Description text -->
+                <p class="text-sm text-gray-700 dark:text-gray-200 leading-relaxed line-clamp-3">
+                    {{ item.description || $t('manage.descEmptyHint') }}
+                </p>
+                <!-- Downward arrow -->
+                <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-2">
+                    <div class="w-0 h-0 border-l-[8px] border-r-[8px] border-t-[8px] border-l-transparent border-r-transparent border-t-pink-100 dark:border-t-pink-900 mx-auto"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Glassmorphism Footer -->
         <div
             class="absolute bottom-0 left-0 right-0 p-4 bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border-t border-white/20 dark:border-white/5 transition-all">

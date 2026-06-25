@@ -218,6 +218,8 @@ export default {
         description: '备注',
         descPlaceholder: '输入图片备注...',
         noDescription: '暂无备注',
+        descBubbleLabel: '备注',
+        descEmptyHint: '暂无备注，写点什么吧~',
         moveToFolder: '移动到目录',
         selectTargetFolder: '选择目标目录',
         moveTargetHint: '图片将被移动到所选目录',

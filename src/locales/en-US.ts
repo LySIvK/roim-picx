@@ -217,6 +217,8 @@ export default {
         description: 'Description',
         descPlaceholder: 'Enter a description for this image...',
         noDescription: 'No description',
+        descBubbleLabel: 'Note',
+        descEmptyHint: 'No description yet~ Write something!',
         moveToFolder: 'Move to Folder',
         selectTargetFolder: 'Select target folder',
         moveTargetHint: 'The image will be moved to the selected folder',
