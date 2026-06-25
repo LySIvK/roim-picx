@@ -88,7 +88,7 @@ onMounted(() => {
 
         <div class="max-w-7xl mx-auto p-4 md:p-8">
             <!-- Error State -->
-            <div v-if="errorTitle" class="flex flex-col items-center justify-center py-20">
+            <div v-if="errorTitle" class="flex flex-col items-center justify-center py-10 md:py-20">
                 <div
                     class="w-20 h-20 mx-auto mb-6 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
                     <font-awesome-icon :icon="faExclamationTriangle" class="text-3xl text-red-500" />
@@ -98,7 +98,7 @@ onMounted(() => {
             </div>
 
             <!-- Lock Screen -->
-            <div v-else-if="!verified && shareInfo" class="max-w-lg mx-auto mt-20">
+            <div v-else-if="!verified && shareInfo" class="max-w-lg mx-auto mt-8 md:mt-20">
                 <div class="bg-white/10 dark:bg-white/5 backdrop-blur-md rounded-3xl shadow-xl p-8 border border-white/10">
                     <div class="text-center mb-8">
                         <div v-if="shareInfo.coverImage"
