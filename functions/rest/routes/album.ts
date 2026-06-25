@@ -485,6 +485,7 @@ albumRoutes.post('/share/album/:token/verify', async (c) => {
             album_id: row.album_id,
             image_url: row.image_url,
             added_at: row.added_at,
+            description: row.description || null,
             thumbnail_url: row.thumbnail_key ? `${c.env.BASE_URL}/rest/thumb/${row.thumbnail_key}` : null
         }))
 
