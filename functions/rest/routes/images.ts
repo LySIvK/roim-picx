@@ -324,8 +324,28 @@ imageRoutes.post('/move', auth, async (c) => {
             return c.json(Fail("File not found in storage"))
         }
 
+        // Read body into buffer for reliable cross-key copy
+        let bodyBuffer: ArrayBuffer | null = null
+        if (oldObject.body) {
+            const reader = oldObject.body.getReader()
+            const chunks: Uint8Array[] = []
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+                chunks.push(value)
+            }
+            const totalLength = chunks.reduce((acc, c) => acc + c.length, 0)
+            const merged = new Uint8Array(totalLength)
+            let offset = 0
+            for (const chunk of chunks) {
+                merged.set(chunk, offset)
+                offset += chunk.length
+            }
+            bodyBuffer = merged.buffer
+        }
+
         // Copy to new key
-        await provider.put(newKey, oldObject.body!, {
+        await provider.put(newKey, bodyBuffer, {
             contentType: oldObject.contentType!,
             metadata: oldObject.metadata,
         })
