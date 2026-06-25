@@ -220,6 +220,7 @@ const createShare = async () => {
         ElMessage.success(t('share.shareUrlGenerated'))
     } catch (e: any) {
         ElMessage.error(e.message || t('share.createShareFailed'))
+        emit('update:modelValue', false)
     } finally {
         loading.value = false
     }
