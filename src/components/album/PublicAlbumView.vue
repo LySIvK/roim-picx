@@ -175,7 +175,7 @@ onMounted(() => {
                     <div v-for="(img, index) in images" :key="img.image_key"
                         class="aspect-square relative rounded-lg overflow-hidden group cursor-pointer bg-gray-100 dark:bg-gray-800"
                         @click="showPreview(index)">
-                        <el-image :src="img.image_url" fit="cover"
+                        <el-image :src="img.thumbnail_url || img.image_url" fit="cover"
                             class="w-full h-full transition-transform duration-500 group-hover:scale-110"
                             loading="lazy" />
                     </div>
@@ -186,7 +186,7 @@ onMounted(() => {
                     <div v-for="(img, index) in images" :key="img.image_key"
                         class="relative rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer group"
                         @click="showPreview(index)">
-                        <el-image :src="img.image_url" fit="contain"
+                        <el-image :src="img.thumbnail_url || img.image_url" fit="contain"
                             class="w-full max-h-[80vh] transition-transform duration-300 group-hover:scale-105"
                             loading="lazy" />
                         <div

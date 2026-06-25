@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { Ok, Fail } from '../type'
 import { auth, type AppEnv } from '../middleware/auth'
+import { getProviderByType } from '../storage'
 
 const albumRoutes = new Hono<AppEnv>()
 
@@ -170,19 +171,32 @@ albumRoutes.get('/albums/:id', auth, async (c) => {
 
         const [images, countResult] = await Promise.all([
             c.env.DB.prepare(
-                'SELECT * FROM album_images WHERE album_id = ? ORDER BY added_at DESC LIMIT ? OFFSET ?'
+                `SELECT ai.*, i.thumbnail_key, i.storage_type
+                 FROM album_images ai
+                 LEFT JOIN images i ON ai.image_key = i.key
+                 WHERE ai.album_id = ?
+                 ORDER BY ai.added_at DESC LIMIT ? OFFSET ?`
             ).bind(id, limit, offset).all(),
             c.env.DB.prepare(
                 'SELECT COUNT(*) as count FROM album_images WHERE album_id = ?'
             ).bind(id).first<{ count: number }>()
         ])
 
+        // Map results to include thumbnailUrl
+        const imageResults = (images.results || []).map((row: any) => {
+            const provider = getProviderByType(c, row.storage_type || 'R2')
+            return {
+                ...row,
+                thumbnail_url: row.thumbnail_key ? provider.getPublicUrl(row.thumbnail_key) : null
+            }
+        })
+
         return c.json(Ok({
             album: {
                 ...album,
                 enableRandomImage: !!album.enable_random_image
             },
-            images: images.results || [],
+            images: imageResults,
             total: countResult?.count || 0
         }))
     } catch (e) {
@@ -457,14 +471,27 @@ albumRoutes.post('/share/album/:token/verify', async (c) => {
             'UPDATE album_shares SET current_views = current_views + 1 WHERE id = ?'
         ).bind(token).run()
 
-        // Get images
-        // Only return image URLs.
+        // Get images with thumbnails
         const images = await c.env.DB.prepare(
-            'SELECT image_key, album_id, image_url, added_at FROM album_images WHERE album_id = ? ORDER BY added_at DESC'
+            `SELECT ai.image_key, ai.album_id, ai.image_url, ai.added_at, i.thumbnail_key, i.storage_type
+             FROM album_images ai
+             LEFT JOIN images i ON ai.image_key = i.key
+             WHERE ai.album_id = ? ORDER BY ai.added_at DESC`
         ).bind(share.album_id).all()
 
+        const imageResults = (images.results || []).map((row: any) => {
+            const provider = getProviderByType(c, row.storage_type || 'R2')
+            return {
+                image_key: row.image_key,
+                album_id: row.album_id,
+                image_url: row.image_url,
+                added_at: row.added_at,
+                thumbnail_url: row.thumbnail_key ? provider.getPublicUrl(row.thumbnail_key) : null
+            }
+        })
+
         return c.json(Ok({
-            images: images.results
+            images: imageResults
         }))
     } catch (e) {
         console.error('Verify album share error:', e)
