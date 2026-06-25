@@ -135,7 +135,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ElMessage, ElTooltip, ElPopconfirm, ElImage, ElImageViewer } from 'element-plus'
+import { ElMessage, ElTooltip, ElPopconfirm, ElImage } from 'element-plus'
 import { requestMyShares, requestDeleteShare, type MyShare } from '../utils/request'
 import LoadingOverlay from '../components/LoadingOverlay.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
