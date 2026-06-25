@@ -22,7 +22,7 @@ onMounted(() => {
 <template>
 	<el-config-provider :locale="elLocale">
 		<div
-			class="w-full h-screen overflow-x-hidden overflow-y-auto bg-gradient-to-br from-sky-100 via-blue-50 to-cyan-100 dark:from-slate-950 dark:via-indigo-950 dark:to-sky-950 transition-colors duration-300">
+			class="w-full h-screen overflow-x-hidden overflow-y-auto bg-gradient-to-br from-slate-950 via-indigo-950 to-sky-950 transition-colors duration-300">
 			<el-scrollbar>
 				<router-view />
 			</el-scrollbar>

@@ -4,10 +4,7 @@ export type Theme = 'light' | 'dark'
 const THEME_KEY = 'picx-theme'
 
 export const getTheme = (): Theme => {
-    const savedTheme = localStorage.getItem(THEME_KEY) as Theme
-    if (savedTheme) return savedTheme
-
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    return 'dark'
 }
 
 export const setTheme = (theme: Theme) => {
@@ -20,13 +17,9 @@ export const setTheme = (theme: Theme) => {
 }
 
 export const toggleTheme = (): Theme => {
-    const currentTheme = getTheme()
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light'
-    setTheme(newTheme)
-    return newTheme
+    return 'dark'
 }
 
 export const initTheme = () => {
-    const theme = getTheme()
-    setTheme(theme)
+    document.documentElement.classList.add('dark')
 }
