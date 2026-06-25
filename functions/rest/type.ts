@@ -140,6 +140,7 @@ export interface DbImage {
     mime_type: string | null
     folder: string
     tags: string | null
+    description: string
     is_public: number
     view_count: number
     download_count: number

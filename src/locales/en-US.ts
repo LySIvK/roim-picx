@@ -27,6 +27,7 @@ export default {
         submit: 'Submit',
         add: 'Add',
         saveSuccess: 'Save successful',
+        saving: 'Saving...',
         default: 'Default',
         none: 'None',
         all: 'All',
@@ -213,6 +214,9 @@ export default {
         items: '{count} items',
         imageDetails: 'Image Details',
         fileName: 'File Name',
+        description: 'Description',
+        descPlaceholder: 'Enter a description for this image...',
+        noDescription: 'No description',
     },
     share: {
         title: 'Share Image',

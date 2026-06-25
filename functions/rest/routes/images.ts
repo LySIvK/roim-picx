@@ -131,7 +131,8 @@ imageRoutes.post('/list', listRateLimit, auth, async (c) => {
                 storageType: img.storage_type,
                 nsfw: img.nsfw === 1,
                 nsfwScore: img.nsfw_score,
-                tags: tags
+                tags: tags,
+                description: img.description || undefined
             }
         })
 
@@ -230,6 +231,47 @@ imageRoutes.post('/updateTags', auth, async (c) => {
     } catch (e) {
         console.error('Failed to update image tags:', e)
         return c.json(Fail(`更新标签失败: ${(e as Error).message}`))
+    }
+})
+
+// 更新图片备注
+imageRoutes.post('/updateDescription', auth, async (c) => {
+    const user = c.get('user') as User | undefined
+    const isAdminToken = c.get('isAdminToken') || false
+
+    if (!user && !isAdminToken) {
+        return c.json(Fail("未授权"))
+    }
+
+    try {
+        const data = await c.req.json<{ key: string, description: string }>()
+        if (!data.key) {
+            return c.json(Fail("缺少图片 key"))
+        }
+
+        // 检查图片是否存在，以及用户是否有权限修改
+        const image = await c.env.DB.prepare('SELECT user_login FROM images WHERE key = ?')
+            .bind(data.key).first<{ user_login: string }>()
+
+        if (!image) {
+            return c.json(Fail("图片不存在"))
+        }
+
+        // 检查权限：只有图片所有者或管理员可以修改备注
+        const canModify = isAdminToken || (user && (user.role === 'admin' || user.login === image.user_login))
+        if (!canModify) {
+            return c.json(Fail("无权限修改此图片"))
+        }
+
+        // 更新备注
+        const desc = data.description || ''
+        await c.env.DB.prepare('UPDATE images SET description = ? WHERE key = ?')
+            .bind(desc, data.key).run()
+
+        return c.json(Ok({ key: data.key, description: desc }))
+    } catch (e) {
+        console.error('Failed to update image description:', e)
+        return c.json(Fail(`更新备注失败: ${(e as Error).message}`))
     }
 })
 

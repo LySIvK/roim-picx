@@ -13,7 +13,7 @@
               </template>
            </el-image>
         </div>
-        
+
         <!-- Info List -->
         <div class="flex-1 space-y-2 min-w-0">
           <div class="grid grid-cols-[80px_1fr] gap-x-2 gap-y-1 text-sm">
@@ -30,16 +30,61 @@
 
              <span class="text-gray-500 dark:text-gray-400 text-right">{{ $t('manage.uploadTime') }}:</span>
              <span class="text-gray-900 dark:text-gray-100">{{ item.uploadedAt ? new Date(item.uploadedAt).toLocaleString() : '-' }}</span>
-             
+
              <template v-if="item.tags && item.tags.length">
                 <span class="text-gray-500 dark:text-gray-400 text-right">{{ $t('tags.title') }}:</span>
                 <div class="flex flex-wrap gap-1 w-full min-w-0">
-                   <span v-for="tag in item.tags" :key="tag" 
+                   <span v-for="tag in item.tags" :key="tag"
                      class="inline-block px-1.5 py-0.5 text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-full flex-shrink-0 whitespace-nowrap">
                      {{ tag }}
                    </span>
                 </div>
              </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description Section -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {{ $t('manage.description') }}
+          </h4>
+          <button
+            v-if="!editingDescription"
+            @click="startEditDescription"
+            class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors flex items-center gap-1"
+          >
+            <font-awesome-icon :icon="faPen" class="text-[10px]" />
+            {{ item.description ? $t('common.edit') : $t('common.add') }}
+          </button>
+        </div>
+        <div v-if="!editingDescription" class="min-h-[40px] px-3 py-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-800 text-sm text-gray-600 dark:text-gray-400">
+          {{ item.description || $t('manage.noDescription') }}
+        </div>
+        <div v-else class="space-y-2">
+          <textarea
+            ref="descTextareaRef"
+            v-model="descEditValue"
+            :placeholder="$t('manage.descPlaceholder')"
+            rows="3"
+            class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+            @keyup.escape="cancelEditDescription"
+          ></textarea>
+          <div class="flex justify-end gap-2">
+            <button
+              @click="cancelEditDescription"
+              class="px-3 py-1 text-xs rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              {{ $t('common.cancel') }}
+            </button>
+            <button
+              @click="saveDescription"
+              :disabled="savingDescription"
+              class="px-3 py-1 text-xs rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            >
+              {{ savingDescription ? $t('common.saving') : $t('common.save') }}
+            </button>
           </div>
         </div>
       </div>
@@ -68,14 +113,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { faCopy, faImage } from '@fortawesome/free-solid-svg-icons'
+import { faCopy, faImage, faPen } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import copy from 'copy-to-clipboard'
 import { ElMessage, ElImage } from 'element-plus'
 import BaseDialog from './common/BaseDialog.vue'
 import formatBytes from '../utils/format-bytes'
+import { requestUpdateImageDescription } from '../utils/request'
 import type { ImgItem } from '../utils/types'
 
 const props = defineProps<{
@@ -83,7 +129,7 @@ const props = defineProps<{
   item: ImgItem
 }>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'updateItem'])
 const { t } = useI18n()
 
 const visible = computed({
@@ -109,6 +155,42 @@ const copyText = (text: string) => {
     ElMessage.success(t('manage.copySuccess'))
   } else {
     ElMessage.error(t('manage.copyFailed'))
+  }
+}
+
+// Description editing
+const editingDescription = ref(false)
+const descEditValue = ref('')
+const savingDescription = ref(false)
+const descTextareaRef = ref<HTMLTextAreaElement | null>(null)
+
+const startEditDescription = async () => {
+  descEditValue.value = props.item.description || ''
+  editingDescription.value = true
+  await nextTick()
+  descTextareaRef.value?.focus()
+}
+
+const cancelEditDescription = () => {
+  editingDescription.value = false
+  descEditValue.value = ''
+}
+
+const saveDescription = async () => {
+  savingDescription.value = true
+  try {
+    await requestUpdateImageDescription({
+      key: props.item.key,
+      description: descEditValue.value
+    })
+    props.item.description = descEditValue.value
+    emit('updateItem', { ...props.item, description: descEditValue.value })
+    ElMessage.success(t('common.saveSuccess'))
+    editingDescription.value = false
+  } catch (e) {
+    console.error('Failed to save description:', e)
+  } finally {
+    savingDescription.value = false
   }
 }
 </script>

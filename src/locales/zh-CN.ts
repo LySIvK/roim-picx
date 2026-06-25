@@ -28,6 +28,7 @@ export default {
         reset: '重置',
         add: '新增',
         saveSuccess: '保存成功',
+        saving: '保存中...',
         default: '默认',
         none: '无',
         all: '全部',
@@ -214,6 +215,9 @@ export default {
         items: '{count} 项',
         imageDetails: '图片详情',
         fileName: '文件名',
+        description: '备注',
+        descPlaceholder: '输入图片备注...',
+        noDescription: '暂无备注',
     },
     share: {
         title: '分享图片',

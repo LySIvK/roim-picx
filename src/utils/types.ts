@@ -32,6 +32,9 @@ export interface ImgItem {
 	nsfw?: boolean
 	nsfwScore?: number
 
+	// Description
+	description?: string
+
 	// Folder support
 	isFolder?: boolean
 	name?: string
