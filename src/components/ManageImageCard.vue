@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import {
-    ElDropdown, ElDropdownMenu, ElDropdownItem, ElImage
+    ElDropdown, ElDropdownMenu, ElDropdownItem, ElImage, ElMessage
 } from 'element-plus'
 import {
-    faEllipsisVertical, faPen, faTrash, faShareAlt, faLink, faFolderPlus, faEye, faTag, faEyeSlash, faCheck, faArrowRight
+    faEllipsisVertical, faPen, faTrash, faShareAlt, faLink, faFolderPlus, faEye, faTag, faEyeSlash, faCheck, faArrowRight, faCopy
 } from '@fortawesome/free-solid-svg-icons'
 import { computed, ref } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import copy from 'copy-to-clipboard'
 import formatBytes from '../utils/format-bytes'
 import type { ImgItem } from '../utils/types'
 
@@ -40,10 +41,15 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// Helper to get filename
 const displayGetName = (key: string) => {
     const parts = key.split('/')
     return parts[parts.length - 1]
+}
+
+const handleCopyLink = (e: Event) => {
+    e.stopPropagation()
+    copy(props.item.url)
+    ElMessage.success(t('manage.copySuccess'))
 }
 </script>
 
@@ -54,7 +60,7 @@ const displayGetName = (key: string) => {
 
         <!-- Selection Checkbox -->
         <div v-if="isSelectMode" class="absolute top-3 left-3 z-30" @click.stop>
-            <div @click="$emit('toggleSelect')" 
+            <div @click="$emit('toggleSelect')"
                 class="w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200"
                 :class="selected ? 'bg-indigo-500 border-indigo-500 shadow-sm' : 'bg-black/20 backdrop-blur-sm border-white/30 hover:border-white/60'">
                 <font-awesome-icon v-if="selected" :icon="faCheck" class="text-white text-xs" />
@@ -64,21 +70,20 @@ const displayGetName = (key: string) => {
         <!-- Full Background Image -->
         <div class="absolute inset-0 overflow-hidden rounded-2xl">
             <el-image :src="item.thumbnailUrl || item.url" fit="cover"
-                class="w-full h-full transition-transform duration-700 group-hover:scale-105" 
+                class="w-full h-full transition-transform duration-700 group-hover:scale-105"
                 :class="{ 'blur-xl': isNsfw && !showNsfw }"
                 loading="lazy">
                 <template #placeholder>
                     <div class="w-full h-full bg-gray-200 dark:bg-gray-800 animate-pulse"></div>
                 </template>
                 <template #error>
-                    <div
-                        class="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-400">
+                    <div class="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-400">
                         <font-awesome-icon :icon="faEye" class="text-2xl" />
                     </div>
                 </template>
             </el-image>
-             <!-- NSFW Overlay -->
-             <div v-if="isNsfw && !showNsfw" class="absolute inset-0 flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm z-10">
+            <!-- NSFW Overlay -->
+            <div v-if="isNsfw && !showNsfw" class="absolute inset-0 flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm z-10">
                 <div class="p-3 rounded-full bg-red-500/80 text-white mb-2">
                     <font-awesome-icon :icon="faEyeSlash" class="text-xl" />
                 </div>
@@ -90,16 +95,13 @@ const displayGetName = (key: string) => {
         </div>
 
         <!-- Overlay Gradient -->
-        <div
-            class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
         </div>
 
         <!-- Action Menu -->
-        <div class="absolute top-3 right-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20"
-            @click.stop>
+        <div class="absolute top-3 right-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20" @click.stop>
             <el-dropdown trigger="click">
-                <div
-                    class="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/60 cursor-pointer border border-white/10 transition-colors">
+                <div class="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/60 cursor-pointer border border-white/10 transition-colors">
                     <font-awesome-icon :icon="faEllipsisVertical" />
                 </div>
                 <template #dropdown>
@@ -130,32 +132,28 @@ const displayGetName = (key: string) => {
             </el-dropdown>
         </div>
 
-        <!-- Description Bubble (hover, click to edit) -->
-        <div class="absolute bottom-[calc(100%-70px)] left-1/2 -translate-x-1/2 w-[85%] opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 pointer-events-auto group-hover:translate-y-0 translate-y-2"
-            @click.stop="$emit('detail')">
-            <div class="relative bg-pink-100/95 dark:bg-pink-900/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-lg border border-pink-200/60 dark:border-pink-700/40">
-                <!-- Cute header -->
-                <div class="flex items-center gap-1.5 mb-1">
-                    <span class="text-xs">💬</span>
-                    <span class="text-[11px] font-medium text-pink-400 dark:text-pink-300">{{ $t('manage.descBubbleLabel') }}</span>
-                </div>
-                <!-- Description text -->
-                <p class="text-sm text-gray-700 dark:text-gray-200 leading-relaxed line-clamp-3">
-                    {{ item.description || $t('manage.descEmptyHint') }}
-                </p>
-                <!-- Downward arrow -->
-                <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-2">
-                    <div class="w-0 h-0 border-l-[8px] border-r-[8px] border-t-[8px] border-l-transparent border-r-transparent border-t-pink-100 dark:border-t-pink-900 mx-auto"></div>
-                </div>
+        <!-- Footer: file info + description + copy link -->
+        <div class="absolute bottom-0 left-0 right-0 p-3 bg-white/75 dark:bg-gray-900/75 backdrop-blur-md border-t border-white/20 dark:border-white/5 transition-all">
+            <!-- Row 1: Filename + copy btn -->
+            <div class="flex items-center justify-between gap-1 mb-1">
+                <h3 class="font-bold text-gray-900 dark:text-gray-100 truncate text-xs" :title="displayGetName(item.key)">
+                    {{ displayGetName(item.key) }}
+                </h3>
+                <button @click="handleCopyLink" class="flex-shrink-0 w-6 h-6 rounded-full text-gray-400 dark:text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors flex items-center justify-center" :title="$t('manage.copyLink')">
+                    <font-awesome-icon :icon="faCopy" class="text-[10px]" />
+                </button>
             </div>
-        </div>
-
-        <!-- Glassmorphism Footer -->
-        <div
-            class="absolute bottom-0 left-0 right-0 p-4 bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border-t border-white/20 dark:border-white/5 transition-all">
-            <h3 class="font-bold text-gray-900 dark:text-gray-100 truncate mb-0.5" :title="displayGetName(item.key)">{{
-                displayGetName(item.key) }}</h3>
-            <div v-if="item.tags && item.tags.length > 0" class="flex flex-wrap gap-1 mt-1">
+            <!-- Row 2: Description -->
+            <div @click.stop="$emit('detail')" class="cursor-pointer group/desc">
+                <p v-if="item.description" class="text-[11px] text-gray-500 dark:text-gray-400 leading-snug line-clamp-2 group-hover/desc:text-indigo-500 dark:group-hover/desc:text-indigo-400 transition-colors">
+                    💬 {{ item.description }}
+                </p>
+                <p v-else class="text-[11px] text-gray-300 dark:text-gray-600 italic leading-snug group-hover/desc:text-indigo-400 transition-colors">
+                    {{ $t('manage.descEmptyHint') }}
+                </p>
+            </div>
+            <!-- Row 3: Tags -->
+            <div v-if="item.tags && item.tags.length > 0" class="flex flex-wrap gap-1 mt-1.5">
                 <span v-for="tag in item.tags.slice(0, 3)" :key="tag"
                     class="inline-block px-1.5 py-0.5 text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-full">
                     {{ tag }}
