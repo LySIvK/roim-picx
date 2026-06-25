@@ -362,13 +362,17 @@ albumRoutes.post('/albums/:id/share', auth, async (c) => {
 
             await c.env.DB.prepare(sql).bind(...binds).run()
         } else {
-            // Create new
+            // Create new - look up correct DB user_id
+            const dbUser = await c.env.DB.prepare('SELECT id FROM users WHERE login = ?')
+                .bind(user!.login).first<{ id: number }>()
+            const dbUserId = dbUser?.id || 0
+
             shareId = generateShareId()
             await c.env.DB.prepare(
                 `INSERT INTO album_shares (id, album_id, user_id, user_login, password_hash, max_views, expires_at, created_at)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
             ).bind(
-                shareId, id, null, user!.login,
+                shareId, id, dbUserId, user!.login,
                 passwordHash, maxViews || null,
                 expireAt ? new Date(expireAt).toISOString() : null,
                 now
