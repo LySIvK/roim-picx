@@ -32,18 +32,6 @@ app.route('/', albumRoutes) // Albums
 app.route('/admin', adminRoutes)  // 管理员和用户接口
 app.route('/settings', settingsRoutes) // 系统设置接口
 app.route('/', apiKeyRoutes) // API Keys
-// Diagnostic: test D1 write from worker
-app.get('/dbtest', async (c) => {
-    try {
-        const r = await c.env.DB.prepare(
-            "INSERT INTO images (key, user_id, user_login, size, mime_type, folder, storage_type) VALUES ('diag_test', null, 'diag', 1, 'text/plain', '', 'R2')"
-        ).run()
-        return c.json({ ok: true, meta: r.meta })
-    } catch (e: any) {
-        return c.json({ ok: false, error: e.message, stack: e.stack })
-    }
-})
-
 app.route('/', imageRoutes) // Must be last due to catch-all route
 
 // Error handling

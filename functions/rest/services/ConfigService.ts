@@ -34,11 +34,24 @@ export class ConfigService {
                 console.error('Failed to parse upload_config:', e);
                 uploadConfigCache = [];
             }
-        } else {
-            uploadConfigCache = [];
         }
 
-        return uploadConfigCache || [];
+        // Fallback to defaults if no config in DB
+        if (!uploadConfigCache || uploadConfigCache.length === 0) {
+            uploadConfigCache = [
+                { type: 'image/jpeg', ext: 'jpeg' },
+                { type: 'image/png', ext: 'png' },
+                { type: 'image/gif', ext: 'gif' },
+                { type: 'image/webp', ext: 'webp' },
+                { type: 'image/jpg', ext: 'jpg' },
+                { type: 'image/bmp', ext: 'bmp' },
+                { type: 'image/svg+xml', ext: 'svg' },
+                { type: 'image/x-icon', ext: 'ico' },
+                { type: 'image/vnd.microsoft.icon', ext: 'ico' },
+            ]
+        }
+
+        return uploadConfigCache;
     }
 
     async updateUploadConfig(config: UploadConfigItem[]): Promise<boolean> {
