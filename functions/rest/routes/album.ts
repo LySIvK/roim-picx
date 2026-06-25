@@ -368,7 +368,7 @@ albumRoutes.post('/albums/:id/share', auth, async (c) => {
                 `INSERT INTO album_shares (id, album_id, user_id, user_login, password_hash, max_views, expires_at, created_at)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
             ).bind(
-                shareId, id, user!.id, user!.login,
+                shareId, id, null, user!.login,
                 passwordHash, maxViews || null,
                 expireAt ? new Date(expireAt).toISOString() : null,
                 now

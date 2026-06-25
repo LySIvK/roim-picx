@@ -83,14 +83,14 @@ shareRoutes.post('/share', auth, async (c) => {
         const user = c.get('user')
         const passwordHash = data.password ? await hashPassword(data.password) : null
 
-        // Store in D1
+        // Store in D1 (user_id = null to avoid FK mismatch between JWT GitHub ID and DB auto-increment ID)
         await c.env.DB.prepare(
-            `INSERT INTO shares (id, image_key, user_id, user_login, password_hash, max_views, current_views, expires_at, created_at) 
+            `INSERT INTO shares (id, image_key, user_id, user_login, password_hash, max_views, current_views, expires_at, created_at)
              VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`
         ).bind(
             shareId,
             data.imageKey,
-            user?.id || null,
+            null,
             user?.login || null,
             passwordHash,
             data.maxViews || null,
