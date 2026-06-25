@@ -152,8 +152,10 @@ export const requestDeleteShare = (id: string): Promise<any> => request.delete(`
 // My Shares
 export interface MyShare {
 	id: string
-	imageKey: string
+	type?: 'image' | 'album'
+	imageKey?: string
 	imageUrl: string
+	albumName?: string
 	hasPassword: boolean
 	expireAt?: number
 	maxViews?: number

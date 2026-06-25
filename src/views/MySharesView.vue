@@ -52,8 +52,8 @@
                     <!-- Info -->
                     <div class="flex-1 min-w-0">
                         <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate mb-1"
-                            :title="share.imageKey">
-                            {{ share.imageKey }}
+                            :title="share.type === 'album' ? share.albumName : share.imageKey">
+                            {{ share.type === 'album' ? '📁 ' + share.albumName : share.imageKey }}
                         </h4>
                         <div class="flex items-center gap-2 flex-wrap mb-1">
                             <span v-if="share.hasPassword"

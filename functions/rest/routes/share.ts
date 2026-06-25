@@ -137,34 +137,61 @@ shareRoutes.get('/share/my', auth, async (c) => {
         ).bind(user.login).all<DbShare>()
 
         const myShares = await Promise.all((results.results || []).map(async (record) => {
-            // Get image info to generate public URL
-            // Optimization: could join, but following original logic for now
             const img = await c.env.DB.prepare('SELECT storage_type FROM images WHERE key = ?')
                 .bind(record.image_key).first<{ storage_type?: 'R2' | 'HF' }>()
 
             const provider = getProviderByType(c, img?.storage_type || 'R2')
             const createdAt = new Date(record.created_at).getTime()
             const expireAt = record.expires_at ? new Date(record.expires_at).getTime() : undefined
-
             const isExpired = !!expireAt && Date.now() > expireAt
             const isMaxedOut = !!record.max_views && record.current_views >= record.max_views
 
             return <ShareResponse>{
                 id: record.id,
+                type: 'image',
                 imageKey: record.image_key,
                 imageUrl: provider.getPublicUrl(record.image_key),
                 hasPassword: !!record.password_hash,
-                expireAt: expireAt,
+                expireAt,
                 maxViews: record.max_views || undefined,
                 views: record.current_views,
-                createdAt: createdAt,
+                createdAt,
                 isExpired,
                 isMaxedOut,
                 url: `${c.env.BASE_URL}/s/${record.id}`
             }
         }))
 
-        return c.json(Ok(myShares))
+        // Also fetch album shares
+        const albumResults = await c.env.DB.prepare(
+            'SELECT s.*, a.name as album_name, a.cover_image FROM album_shares s JOIN albums a ON s.album_id = a.id WHERE s.user_login = ? ORDER BY s.created_at DESC'
+        ).bind(user.login).all<any>()
+
+        const albumShares = (albumResults.results || []).map((record: any) => {
+            const createdAt = new Date(record.created_at).getTime()
+            const expireAt = record.expires_at ? new Date(record.expires_at).getTime() : undefined
+            const isExpired = !!expireAt && Date.now() > expireAt
+            const isMaxedOut = !!record.max_views && record.current_views >= record.max_views
+
+            return {
+                id: record.id,
+                type: 'album',
+                albumName: record.album_name || 'Album',
+                imageUrl: record.cover_image || '',
+                hasPassword: !!record.password_hash,
+                expireAt,
+                maxViews: record.max_views || undefined,
+                views: record.current_views,
+                createdAt,
+                isExpired,
+                isMaxedOut,
+                url: `${c.env.BASE_URL}/s/album/${record.id}`
+            }
+        })
+
+        const allShares = [...myShares, ...albumShares].sort((a, b) => b.createdAt - a.createdAt)
+
+        return c.json(Ok(allShares))
     } catch (e) {
         console.error('List my shares error:', e)
         return c.json(Fail(`获取分享列表失败: ${(e as Error).message}`))
@@ -265,9 +292,16 @@ shareRoutes.post('/share/:id/verify', async (c) => {
 shareRoutes.delete('/share/:id', auth, async (c) => {
     const shareId = c.req.param('id')
 
-    const result = await c.env.DB.prepare(
+    // Try image share first, then album share
+    let result = await c.env.DB.prepare(
         'DELETE FROM shares WHERE id = ?'
     ).bind(shareId).run()
+
+    if (result.meta.changes === 0) {
+        result = await c.env.DB.prepare(
+            'DELETE FROM album_shares WHERE id = ?'
+        ).bind(shareId).run()
+    }
 
     if (result.meta.changes === 0) {
         return c.json(Fail('分享链接不存在'), 200)
