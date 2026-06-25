@@ -8,18 +8,6 @@ import { getStorageProvider, getProviderByType } from '../storage'
 
 const uploadRoutes = new Hono<AppEnv>()
 
-// Diagnostic: test D1 write
-uploadRoutes.get('/dbtest', async (c) => {
-    try {
-        const r = await c.env.DB.prepare(
-            "INSERT INTO images (key, user_id, user_login, size, mime_type, folder, storage_type) VALUES ('diag_test', null, 'diag', 1, 'text/plain', '', 'R2')"
-        ).run()
-        return c.json({ ok: true, meta: r.meta })
-    } catch (e: any) {
-        return c.json({ ok: false, error: e.message, stack: e.stack })
-    }
-})
-
 // batch upload file (with rate limiting)
 uploadRoutes.post('/upload', uploadRateLimit, auth, async (c) => {
     const files = await c.req.formData()
@@ -157,8 +145,10 @@ uploadRoutes.post('/upload', uploadRateLimit, auth, async (c) => {
             if (user) {
                 console.log(`[Upload] Syncing to DB - key: ${object.key}, user_login: ${user.login}`)
                 const tagsJson = tags.length > 0 ? JSON.stringify(tags) : null
+                let dbOk = false
+                let dbError = ''
                 try {
-                    await c.env.DB.prepare(
+                    const result = await c.env.DB.prepare(
                         `INSERT INTO images (key, user_id, user_login, original_name, size, mime_type, folder, expires_at, storage_type, tags, nsfw, nsfw_score, thumbnail_key)
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
                     ).bind(
@@ -176,6 +166,8 @@ uploadRoutes.post('/upload', uploadRateLimit, auth, async (c) => {
                         nsfwScore,
                         thumbnailKey
                     ).run()
+                    dbOk = result.success
+                    if (!dbOk) console.error(`[Upload] DB insert returned success=false - key: ${object.key}`)
                     console.log(`[Upload] Image inserted to DB successfully - key: ${object.key}`)
 
                     // 更新用户统计 (async, non-critical)
@@ -237,7 +229,8 @@ uploadRoutes.post('/upload', uploadRateLimit, auth, async (c) => {
                 storageType: storageType as 'R2' | 'HF',
                 nsfw: nsfw === 1,
                 nsfwScore: nsfwScore,
-                thumbnailUrl: thumbnailKey ? storage.getPublicUrl(thumbnailKey) : undefined
+                thumbnailUrl: thumbnailKey ? storage.getPublicUrl(thumbnailKey) : undefined,
+                _dbStatus: dbOk ? 'ok' : `fail: ${dbError}`
             })
         }
     }
