@@ -77,10 +77,10 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div class="min-h-screen text-gray-100">
         <!-- Minimal Header -->
-        <div class="h-16 bg-white dark:bg-gray-800 shadow-sm flex items-center justify-center px-4">
-            <div class="flex items-center gap-2 font-bold text-xl">
+        <div class="h-16 bg-white/5 backdrop-blur-md border-b border-white/10 flex items-center justify-center px-4">
+            <div class="flex items-center gap-2 font-bold text-xl text-white">
                 <img src="../../assets/picx-logo.png" class="w-8 h-8" />
                 <span>PICX Album</span>
             </div>
@@ -141,8 +141,8 @@ onMounted(() => {
                 <div class="mb-8">
                     <div class="flex items-start justify-between gap-4 mb-4">
                         <div class="flex-1">
-                            <h1 class="text-3xl font-bold mb-2">{{ shareInfo.albumName }}</h1>
-                            <p class="text-gray-500 max-w-2xl">{{ shareInfo.description }}</p>
+                            <h1 class="text-3xl font-bold mb-2 text-white">{{ shareInfo.albumName }}</h1>
+                            <p class="text-gray-300 max-w-2xl">{{ shareInfo.description }}</p>
                             <div class="flex items-center gap-4 mt-4 text-sm text-gray-400">
                                 <span>{{ images.length }} {{ $t('album.items') }}</span>
                             </div>
@@ -152,16 +152,16 @@ onMounted(() => {
                             <button @click="viewMode = 'grid'" :class="[
                                 'p-2 rounded-lg transition-all',
                                 viewMode === 'grid'
-                                    ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
-                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                    ? 'bg-indigo-500/30 text-indigo-300'
+                                    : 'bg-white/10 text-gray-300 hover:bg-white/20'
                             ]">
                                 <font-awesome-icon :icon="faThLarge" class="text-lg" />
                             </button>
                             <button @click="viewMode = 'large'" :class="[
                                 'p-2 rounded-lg transition-all',
                                 viewMode === 'large'
-                                    ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
-                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                    ? 'bg-indigo-500/30 text-indigo-300'
+                                    : 'bg-white/10 text-gray-300 hover:bg-white/20'
                             ]">
                                 <font-awesome-icon :icon="faImageIcon" class="text-lg" />
                             </button>
