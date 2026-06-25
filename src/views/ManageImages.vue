@@ -522,7 +522,6 @@ const navigateToBreadcrumb = (index: number) => {
 }
 
 const changeFolder = (path: string) => {
-    console.log(path)
     delimiter.value = path
     listImages()
 }
