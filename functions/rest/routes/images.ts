@@ -467,6 +467,9 @@ async function deleteImageFromDb(c: any, key: string): Promise<void> {
             // 删除图片记录
             await db.prepare('DELETE FROM images WHERE key = ?').bind(key).run()
 
+            // 删除相册中的引用
+            await db.prepare('DELETE FROM album_images WHERE image_key = ?').bind(key).run()
+
             // 更新用户存储统计
             await db.prepare(
                 'UPDATE users SET storage_used = MAX(0, storage_used - ?) WHERE login = ?'
