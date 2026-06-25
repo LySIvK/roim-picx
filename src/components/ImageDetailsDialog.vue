@@ -2,7 +2,12 @@
   <BaseDialog v-model="visible" :title="$t('manage.imageDetails')" width="600px">
     <div class="space-y-6">
       <!-- Image Details Section -->
-      <div class="flex gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+      <div>
+        <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 pb-2 border-b border-gray-200 dark:border-gray-700 mb-3 flex items-center gap-2">
+          <font-awesome-icon :icon="faImage" class="text-gray-400" />
+          {{ $t('manage.imageDetails') }}
+        </h4>
+        <div class="flex gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
         <!-- Thumbnail -->
         <div class="w-24 h-24 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
            <el-image :src="item.url" fit="cover" class="w-full h-full" :preview-src-list="[item.url]" preview-teleported>
@@ -47,8 +52,8 @@
       <!-- Description Section -->
       <div class="space-y-2">
         <div class="flex items-center justify-between">
-          <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            {{ $t('manage.description') }}
+          <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            💬 {{ $t('manage.description') }}
           </h4>
           <button
             v-if="!editingDescription"

@@ -183,13 +183,10 @@ albumRoutes.get('/albums/:id', auth, async (c) => {
         ])
 
         // Map results to include thumbnailUrl
-        const imageResults = (images.results || []).map((row: any) => {
-            const provider = getProviderByType(c, row.storage_type || 'R2')
-            return {
-                ...row,
-                thumbnail_url: row.thumbnail_key ? provider.getPublicUrl(row.thumbnail_key) : null
-            }
-        })
+        const imageResults = (images.results || []).map((row: any) => ({
+            ...row,
+            thumbnail_url: row.thumbnail_key ? `${c.env.BASE_URL}/rest/thumb/${row.thumbnail_key}` : null
+        }))
 
         return c.json(Ok({
             album: {
@@ -479,16 +476,13 @@ albumRoutes.post('/share/album/:token/verify', async (c) => {
              WHERE ai.album_id = ? ORDER BY ai.added_at DESC`
         ).bind(share.album_id).all()
 
-        const imageResults = (images.results || []).map((row: any) => {
-            const provider = getProviderByType(c, row.storage_type || 'R2')
-            return {
-                image_key: row.image_key,
-                album_id: row.album_id,
-                image_url: row.image_url,
-                added_at: row.added_at,
-                thumbnail_url: row.thumbnail_key ? provider.getPublicUrl(row.thumbnail_key) : null
-            }
-        })
+        const imageResults = (images.results || []).map((row: any) => ({
+            image_key: row.image_key,
+            album_id: row.album_id,
+            image_url: row.image_url,
+            added_at: row.added_at,
+            thumbnail_url: row.thumbnail_key ? `${c.env.BASE_URL}/rest/thumb/${row.thumbnail_key}` : null
+        }))
 
         return c.json(Ok({
             images: imageResults

@@ -145,10 +145,10 @@ const handleCopyLink = (e: Event) => {
             </div>
             <!-- Row 2: Description -->
             <div @click.stop="$emit('detail')" class="cursor-pointer group/desc">
-                <p v-if="item.description" class="text-[11px] text-gray-500 dark:text-gray-400 leading-snug line-clamp-2 group-hover/desc:text-indigo-500 dark:group-hover/desc:text-indigo-400 transition-colors">
+                <p v-if="item.description" class="text-xs text-indigo-300 dark:text-indigo-200 leading-snug line-clamp-2 group-hover/desc:text-indigo-400 transition-colors">
                     💬 {{ item.description }}
                 </p>
-                <p v-else class="text-[11px] text-gray-300 dark:text-gray-600 italic leading-snug group-hover/desc:text-indigo-400 transition-colors">
+                <p v-else class="text-xs text-gray-400 dark:text-gray-500 italic leading-snug group-hover/desc:text-indigo-400 transition-colors">
                     {{ $t('manage.descEmptyHint') }}
                 </p>
             </div>
