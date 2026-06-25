@@ -229,7 +229,7 @@ uploadRoutes.post('/upload', uploadRateLimit, auth, async (c) => {
                 storageType: storageType as 'R2' | 'HF',
                 nsfw: nsfw === 1,
                 nsfwScore: nsfwScore,
-                thumbnailUrl: thumbnailKey ? storage.getPublicUrl(thumbnailKey) : undefined,
+                thumbnailUrl: thumbnailKey ? `${c.env.BASE_URL}/rest/thumb/${thumbnailKey}` : undefined,
                 _dbStatus: dbOk ? 'ok' : `fail: ${dbError}`
             })
         }

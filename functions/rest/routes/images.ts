@@ -133,7 +133,7 @@ imageRoutes.post('/list', listRateLimit, auth, async (c) => {
                 nsfwScore: img.nsfw_score,
                 tags: tags,
                 description: img.description || undefined,
-                thumbnailUrl: img.thumbnail_key ? provider.getPublicUrl(img.thumbnail_key) : undefined
+                thumbnailUrl: img.thumbnail_key ? `${c.env.BASE_URL}/rest/thumb/${img.thumbnail_key}` : undefined
             }
         })
 
@@ -576,8 +576,24 @@ imageRoutes.post('/delImage/:token', async (c) => {
     }
 })
 
+// Serve thumbnails directly from R2 (no D1 lookup needed)
+imageRoutes.get("/thumb/:key{.+}", async (c) => {
+    const key = c.req.param('key')
+    if (!key) return c.json(Fail("missing key"), 400)
+
+    const provider = getStorageProvider(c)
+    const object = await provider.get(key)
+    if (!object || !object.body) return c.text('Not Found', 404)
+
+    const headers = new Headers()
+    if (object.contentType) headers.set('content-type', object.contentType)
+    headers.set('content-length', object.size.toString())
+    headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+    return new Response(object.body, { headers })
+})
+
 // image detail - catch-all for image keys
-const RESERVED_PREFIXES = ['user', 'admin', 'github', 'share', 'folder', 'list', 'upload', 'rename', 'del', 'delInfo', 'delImage', 'checkToken']
+const RESERVED_PREFIXES = ['user', 'admin', 'github', 'share', 'folder', 'list', 'upload', 'rename', 'del', 'delInfo', 'delImage', 'checkToken', 'thumb']
 
 function isReservedPath(id: string): boolean {
     const firstSegment = id.split('/')[0]

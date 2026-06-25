@@ -130,8 +130,9 @@ const displayGetName = (key: string) => {
             </el-dropdown>
         </div>
 
-        <!-- Description Bubble (hover) -->
-        <div class="absolute bottom-[calc(100%-70px)] left-1/2 -translate-x-1/2 w-[85%] opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 pointer-events-none group-hover:translate-y-0 translate-y-2">
+        <!-- Description Bubble (hover, click to edit) -->
+        <div class="absolute bottom-[calc(100%-70px)] left-1/2 -translate-x-1/2 w-[85%] opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 pointer-events-auto group-hover:translate-y-0 translate-y-2"
+            @click.stop="$emit('detail')">
             <div class="relative bg-pink-100/95 dark:bg-pink-900/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-lg border border-pink-200/60 dark:border-pink-700/40">
                 <!-- Cute header -->
                 <div class="flex items-center gap-1.5 mb-1">
