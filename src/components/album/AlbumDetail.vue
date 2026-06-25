@@ -317,6 +317,11 @@ onMounted(() => {
                             <font-awesome-icon :icon="faEye" class="text-white text-2xl" />
                         </div>
 
+                        <!-- Description footer -->
+                        <div v-if="!isSelectionMode && img.description" class="absolute bottom-0 left-0 right-0 p-1.5 bg-black/50 backdrop-blur-sm">
+                            <p class="text-[10px] text-white/90 leading-tight line-clamp-1">💬 {{ img.description }}</p>
+                        </div>
+
                         <!-- Checkbox Overlay -->
                         <div v-if="isSelectionMode" class="absolute top-3 right-3 z-10">
                             <div class="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center transition-colors shadow-sm"

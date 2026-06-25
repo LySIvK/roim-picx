@@ -178,6 +178,9 @@ onMounted(() => {
                         <el-image :src="img.thumbnail_url || img.image_url" fit="cover"
                             class="w-full h-full transition-transform duration-500 group-hover:scale-110"
                             loading="lazy" />
+                        <div v-if="img.description" class="absolute bottom-0 left-0 right-0 p-1.5 bg-black/50 backdrop-blur-sm">
+                            <p class="text-[10px] text-white/90 leading-tight line-clamp-1">💬 {{ img.description }}</p>
+                        </div>
                     </div>
                 </div>
 
@@ -192,6 +195,7 @@ onMounted(() => {
                         <div
                             class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                             <p class="text-white text-sm truncate">{{ img.image_key }}</p>
+                            <p v-if="img.description" class="text-white/80 text-xs mt-1 line-clamp-1">💬 {{ img.description }}</p>
                         </div>
                     </div>
                 </div>

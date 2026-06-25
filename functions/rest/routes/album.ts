@@ -171,7 +171,7 @@ albumRoutes.get('/albums/:id', auth, async (c) => {
 
         const [images, countResult] = await Promise.all([
             c.env.DB.prepare(
-                `SELECT ai.*, i.thumbnail_key, i.storage_type
+                `SELECT ai.*, i.thumbnail_key, i.storage_type, i.description
                  FROM album_images ai
                  LEFT JOIN images i ON ai.image_key = i.key
                  WHERE ai.album_id = ?
@@ -470,7 +470,7 @@ albumRoutes.post('/share/album/:token/verify', async (c) => {
 
         // Get images with thumbnails
         const images = await c.env.DB.prepare(
-            `SELECT ai.image_key, ai.album_id, ai.image_url, ai.added_at, i.thumbnail_key, i.storage_type
+            `SELECT ai.image_key, ai.album_id, ai.image_url, ai.added_at, i.thumbnail_key, i.storage_type, i.description
              FROM album_images ai
              LEFT JOIN images i ON ai.image_key = i.key
              WHERE ai.album_id = ? ORDER BY ai.added_at DESC`
